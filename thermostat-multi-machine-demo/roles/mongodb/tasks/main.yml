@@ -1,0 +1,50 @@
+---
+# tasks file for mongodb
+- name: Installs MongoDB and Tomcat (needed for the Web Storage service)
+  dnf: name=mongodb,mongodb-server,mongo-tools,pymongo,tomcat state=latest
+  
+ # * create ~/.thermostat/data directory
+ # * touch ~/.thermostat/data/setup-complete.stamp
+ # * run ./thermostat storage  --start --permitLocalhostException
+ # * add user admin
+ # * add user thermostat and database thermostat
+ # * run ./thermostat storage  --stop
+ # * run ./thermostat storage  --start
+
+  
+ 
+ 
+- name: Enable MongoDB service
+  service: name=mongod enabled=yes
+  
+- name: Start MongoDB service
+  service: name=mongod state=started
+
+- name: Add user admin 
+  mongodb_user: database=admin name=admin password=redhat state=present
+     
+- name: Add user agent 
+  mongodb_user: login_user=admin login_password=redhat database=thermostat name=agent password=redhat state=present
+  
+- name: Copy Thermostat Web Storage application to Catalina Base directory
+  command: cp -R /opt/thermostat/webapp /var/lib/tomcat/webapps
+  
+- name: Rename thermostat folder to the right name
+  command: mv /var/lib/tomcat/webapps/webapp /var/lib/tomcat/webapps/thermostat
+  
+- name: Configure Tomcat JAAS
+  template: src=tomcat.conf.j2 dest=/etc/tomcat/tomcat.conf
+  
+- name: Configure Tomcat JAAS
+  template: src=thermostat_jaas.conf.j2 dest=/opt/thermostat/etc/thermostat_jaas.conf
+  
+- name: Configure Tomcat JAAS
+  template: src=web.xml.j2 dest=/var/lib/tomcat/webapps/thermostat/WEB-INF/web.xml
+  
+- name: Enable Tomcat service
+  service: name=tomcat enabled=yes
+  
+- name: Start Tomcat service
+  service: name=tomcat state=started
+  
+  

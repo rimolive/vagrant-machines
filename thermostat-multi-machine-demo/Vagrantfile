@@ -1,0 +1,41 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure(2) do |config|
+  config.vm.box = "fedora24"
+
+  config.vm.define "storage" do |storage|
+    storage.vm.hostname = "storage"
+    storage.vm.network "private_network", ip: "192.168.100.100"
+  end
+
+  config.vm.define "agent1" do |agent1|
+    agent1.vm.hostname = "agent1"
+    agent1.vm.provider "libvirt" do |v|
+      v.memory = "2048m"
+    end
+    agent1.vm.network "private_network", ip: "192.168.100.102"
+  end
+
+  config.vm.define "agent2" do |agent2|
+    agent2.vm.hostname = "agent2"
+    agent2.vm.provider "libvirt" do |v|
+      v.memory = "2048m"
+    end
+    agent2.vm.network "private_network", ip: "192.168.100.103"
+  end
+
+  config.vm.define "agent3" do |agent3|
+    agent3.vm.hostname = "agent3"
+    agent3.vm.provider "libvirt" do |v|
+      v.memory = "2048m"
+    end
+    agent3.vm.network "private_network", ip: "192.168.100.104"
+  end
+
+  config.vm.provision "ansible" do |ansible|
+    ansible.playbook = "thermostat.yml"
+    ansible.verbose ="vvvv"
+  end
+
+end

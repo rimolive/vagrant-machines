@@ -1,0 +1,16 @@
+---
+# tasks file for common
+- name: Install python2 on the remote machine
+  raw: dnf install -y python2 python2-dnf libselinux-python
+ 
+- name: Gather facts
+  setup:
+  
+- name: Setup OpenJDK
+  dnf: name=java-1.8.0-openjdk,java-1.8.0-openjdk-devel state=latest
+  
+- name: Create Thermostat Home Directory
+  file: path=/opt/thermostat state=directory
+
+- name: Copy Thermostat binaries
+  unarchive: src=./thermostat.tar.gz dest=/opt/thermostat 
