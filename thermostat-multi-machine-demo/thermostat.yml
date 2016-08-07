@@ -4,8 +4,8 @@
   user: vagrant
   gather_facts: false
   roles: 
-  - common
-  - mongodb
+  - thermostat-common
+#  - mongodb
 
 - name: JBoss EAP 6.4 server
   hosts: agent1
@@ -13,8 +13,8 @@
   user: vagrant
   gather_facts: false
   roles:
-  - common
-  - thermostat-agent
+  - thermostat-common
+#  - thermostat-agent
   
 - name: JBoss EAP 7.0 server
   hosts: agent2
@@ -22,8 +22,8 @@
   user: vagrant
   gather_facts: false
   roles:
-  - common
-  - thermostat-agent
+  - thermostat-common
+#  - thermostat-agent
   
 - name: Generic Java app
   hosts: agent3
@@ -31,5 +31,5 @@
   user: vagrant
   gather_facts: false
   roles:
-  - common
-  - thermostat-agent
+  - thermostat-common
+#  - thermostat-agent
