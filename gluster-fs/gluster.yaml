@@ -1,0 +1,47 @@
+- hosts: server1
+  become: yes
+  user: vagrant
+  tasks:  
+  - name: Prepare partition
+    shell: |
+      echo -e "o\nn\np\n1\n\n\nw" | fdisk /dev/vdb
+      mkfs.xfs -i size=512 /dev/vdb1
+      mkdir -p /data/brick1
+      echo '/dev/vdb1 /data/brick1 xfs defaults 1 2' >> /etc/fstab
+      mount -a && mount
+
+      exit 0
+  - name: install Gluster release
+    yum: name=centos-release-gluster310 state=latest
+  - name: install Gluster server
+    yum: name=glusterfs-server state=latest
+  - name: start glusterd service
+    systemd: name=glusterd state=started
+  - name: configure trusted pool
+    shell: gluster peer probe server2
+  - name: configure gluster pool
+    shell: |
+      mkdir -p /data/brick1/gv0
+      gluster volume create gv0 replica 2 server1:/data/brick1/gv0 server2:/data/brick1/gv0
+      gluster volume start gv0
+      exit 0
+
+- hosts: server2  
+  become: yes
+  user: vagrant
+  tasks:  
+  - name: Prepare partition
+    shell: |
+      echo -e "o\nn\np\n1\n\n\nw" | fdisk /dev/vdb
+      mkfs.xfs -i size=512 /dev/vdb1
+      mkdir -p /data/brick1
+      echo '/dev/vdb1 /data/brick1 xfs defaults 1 2' >> /etc/fstab
+      mount -a && mount
+
+      exit 0
+  - name: install Gluster release
+    yum: name=centos-release-gluster310 state=latest
+  - name: install Gluster server
+    yum: name=glusterfs-server state=latest
+  - name: start glusterd service
+    systemd: name=glusterd state=started

@@ -1,0 +1,28 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "centos/7"
+  
+  config.vm.define "server1" do |server1|
+    server1.vm.hostname = "server1"
+    server1.vm.network "private_network", ip: "10.1.2.3"
+
+    server1.vm.provider :libvirt do |libvirt|
+      libvirt.storage :file, :size => "20G"
+    end
+  end
+
+  config.vm.define "server2" do |server2|
+    server2.vm.hostname = "server2"
+    server2.vm.network "private_network", ip: "10.1.2.4"
+
+    server2.vm.provider :libvirt do |libvirt|
+      libvirt.storage :file, :size => "20G"
+    end
+  end
+
+  config.vm.provision "ansible" do |ansible|
+    ansible.playbook = "gluster.yaml"
+  end
+end
