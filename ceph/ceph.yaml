@@ -1,0 +1,127 @@
+- hosts: server-admin
+  become: yes
+  user: vagrant
+  tasks:
+  - name: Enable EPEL
+    yum: 
+      name: https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+      state: present
+  - name: Add Ceph repository
+    copy:
+      src: repos/ceph.repo
+      dest: /etc/yum.repos.d
+  - name: Update CentOS
+    yum:
+      name: '*'
+      state: latest
+  - name: Install Ceph Deploy and Yum Plugin Priorities
+    yum:
+      name: ceph-deploy,yum-plugin-priorities
+      state: latest
+  - name: Install NTP
+    yum:
+      name: ntp, ntpdate, ntp-doc
+      state: latest
+  - name: Install SSH Server
+    yum:
+      name: openssh-server
+      state: latest
+  - name: deploy local name resolution to all hosts
+    copy:
+      src: hosts
+      dest: /etc/hosts
+      owner: root
+      group: root
+      mode: 644
+      backup: yes
+  - name: create SSH key for root user
+    user:
+      name: root
+      generate_ssh_key: yes
+  - name: fetch all public ssh keys
+    shell: cat ~/.ssh/id_rsa.pub
+    register: ssh_keys
+    tags:
+      - ssh
+  - name: check keys
+    debug: msg="{{ ssh_keys.stdout }}"
+    tags:
+      - ssh
+  - name: deploy keys on all servers
+    authorized_key: user=root key="{{ item[0] }}"
+    delegate_to: "{{ item[1] }}"
+    with_nested:
+      - "{{ ssh_keys.stdout }}"
+      - "{{groups['all']}}"
+    tags:
+      - ssh
+  - name: Disable SELinux
+    selinux:
+      policy: targeted
+      state: permissive
+
+- hosts: server1
+  become: yes
+  user: vagrant
+  tasks:
+  - name: Install NTP
+    yum:
+      name: ntp, ntpdate, ntp-doc
+      state: latest
+  - name: Install SSH Server
+    yum:
+      name: openssh-server
+      state: latest
+  - name: Open required ports
+    firewalld:
+      port: 6879/tcp
+      zone: public
+      permanent: true
+      state: enabled
+  - name: Open SSH port
+    firewalld:
+      service: ssh
+      zone: public
+      permanent: true
+      state: enabled
+  - name: Disable SELinux
+    selinux:
+      policy: targeted
+      state: permissive
+  # - name: Add /etc/hosts
+  #   copy:
+  #     src: hosts
+  #     dest: /etc/hosts
+
+- hosts: server2
+  become: yes
+  user: vagrant
+  tasks:
+  - name: Install NTP
+    yum:
+      name: ntp, ntpdate, ntp-doc
+      state: latest
+  - name: Install SSH Server
+    yum:
+      name: openssh-server
+      state: latest
+  - name: Open required ports
+    firewalld:
+      port: 6800-7300/tcp
+      zone: public
+      permanent: true
+      state: enabled
+  - name: Open SSH port
+    firewalld:
+      service: ssh
+      zone: public
+      permanent: true
+      state: enabled
+  - name: Disable SELinux
+    selinux:
+      policy: targeted
+      state: permissive
+  # - name: Add /etc/hosts
+  #   copy:
+  #     src: hosts
+  #     dest: /etc/hosts

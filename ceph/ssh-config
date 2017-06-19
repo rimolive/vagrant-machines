@@ -1,0 +1,6 @@
+Host server1
+   Hostname server1
+   User vagrant
+Host server2
+   Hostname server2
+   User vagrant
